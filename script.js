@@ -5,10 +5,11 @@ const movieResults = document.getElementById('movie-results');
 const watchlist = new Set(); // Use a Set to avoid duplicates
 const watchlistContainer = document.getElementById('watchlist');
 
-const apiKey = 'your-api-key'; // Replace with your OMDb API key
+const apiKey = '8d0e31a7'; // Replace with your OMDb API key
 
 const modal = document.getElementById('movie-modal');
 const modalContent = document.getElementById('modal-movie-details');
+const modalCloseButton = document.getElementById('modal-close');
 
 // Function to fetch movies from the OMDb API
 async function fetchMovies(query) {
@@ -85,13 +86,17 @@ async function updateWatchlistDisplay() {
           <div class="movie-info">
             <h3 class="movie-title">${movie.Title}</h3>
             <p class="movie-year">${movie.Year}</p>
-            <button class="btn btn-details">Details</button>
-            <button class="btn btn-remove" onclick='removeFromWatchlist("${movie.imdbID}")'>Remove</button>
+            <div class="movie-actions">
+              <button class="btn btn-details">Details</button>
+              <button class="btn btn-remove" onclick='removeFromWatchlist("${movie.imdbID}")'>Remove</button>
+            </div>
           </div>
         `;
 
         // Add event listener to the 'Details' button
-        watchlistCard.querySelector('.btn-details').addEventListener('click', handleDetailsButtonClick(movie.imdbID));
+        watchlistCard
+          .querySelector('.btn-details')
+          .addEventListener('click', handleDetailsButtonClick(movie.imdbID));
 
         watchlistContainer.appendChild(watchlistCard);
       } catch (error) {
@@ -127,15 +132,16 @@ async function openModal(movieID) {
     }
 
     const movie = await response.json();
+    const posterUrl = movie.Poster !== 'N/A' ? movie.Poster : 'https://placehold.co/500x750?text=No+Poster';
 
     modalContent.innerHTML = `
-      <img src="${movie.Poster}" alt="${movie.Title}" class="movie-poster">
-      <h2>${movie.Title} (${movie.Year})</h2>
-      <p><strong>Rating:</strong> ${movie.imdbRating}</p>
-      <p><strong>Genre:</strong> ${movie.Genre}</p>
-      <p><strong>Director:</strong> ${movie.Director}</p>
-      <p><strong>Cast:</strong> ${movie.Actors}</p>
-      <p><strong>Plot:</strong> ${movie.Plot}</p>
+      <img src="${posterUrl}" alt="${movie.Title} poster" class="movie-poster">
+      <h2 class="modal-title">${movie.Title} (${movie.Year})</h2>
+      <p class="modal-detail"><strong>Rating:</strong> ${movie.imdbRating}</p>
+      <p class="modal-detail"><strong>Genre:</strong> ${movie.Genre}</p>
+      <p class="modal-detail"><strong>Director:</strong> ${movie.Director}</p>
+      <p class="modal-detail"><strong>Cast:</strong> ${movie.Actors}</p>
+      <p class="modal-detail"><strong>Plot:</strong> ${movie.Plot}</p>
     `;
 
     modal.style.display = 'block';
@@ -153,6 +159,14 @@ function closeModal() {
 // Event listener to close the modal when clicking outside of it
 window.addEventListener('click', (event) => {
   if (event.target === modal) {
+    closeModal();
+  }
+});
+
+modalCloseButton.addEventListener('click', closeModal);
+
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && modal.style.display === 'block') {
     closeModal();
   }
 });
@@ -176,8 +190,10 @@ function displayMovies(movies) {
       <div class="movie-info">
         <h3 class="movie-title">${movie.Title}</h3>
         <p class="movie-year">${movie.Year}</p>
-        <button class="btn btn-details">Details</button>
-        <button class="btn btn-add">Add to Watchlist</button>
+        <div class="movie-actions">
+          <button class="btn btn-details">Details</button>
+          <button class="btn btn-add">Add to Watchlist</button>
+        </div>
       </div>
     `;
 
